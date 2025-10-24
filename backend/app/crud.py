@@ -9,12 +9,6 @@ from backend.app.schemas import DeviceCreateSchema, DeviceUpdateSchema
 
 async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
     device = Device(**schema.model_dump())
-    is_already_existed = await read_device_by_name(session, device.name)
-    if is_already_existed:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="АКБ с таким именем уже существует",
-        )
     session.add(device)
     await session.commit()
     return device

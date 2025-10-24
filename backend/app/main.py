@@ -1,8 +1,9 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
+from starlette import status
 
 from backend.app import crud
 from backend.app.database import get_db
-from backend.app.schemas import DeviceReadSchema, DeviceCreateSchema
+from backend.app.schemas import DeviceReadSchema, DeviceCreateSchema, DeviceUpdateSchema
 
 
 app = FastAPI()
@@ -16,4 +17,31 @@ async def list_devices(session = Depends(get_db)):
 
 @app.post("/devices/", response_model=DeviceReadSchema)
 async def create_device(schema: DeviceCreateSchema, session = Depends(get_db)):
+    is_already_existed = await crud.read_device_by_name(session, schema.name)
+    if is_already_existed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="АКБ с таким именем уже существует",
+        )
     return await crud.create_device(session, schema)
+
+
+@app.get("/devices/{device_id}/", response_model=DeviceReadSchema)
+async def retrieve_device(device_id: int, session = Depends(get_db)):
+    device = await crud.read_device(session, device_id)
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого АКБ не существует",
+        )
+    return device
+
+
+@app.put("/devices/{device_id}/", response_model=DeviceReadSchema)
+async def update_device(schema: DeviceUpdateSchema, device_id: int, session = Depends(get_db)):
+    return await crud.update_device(session, device_id, schema)
+
+
+@app.delete("/devices/{device_id}/")
+async def delete_device(device_id: int, session = Depends(get_db)):
+    return await crud.delete_device(session, device_id)
