@@ -1,7 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class BatteryReadSchema(BaseModel):
+class CustomBaseModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
+
+
+class BatteryReadSchema(CustomBaseModel):
     id: int
     name: str
     firmare_version: str
@@ -9,14 +13,14 @@ class BatteryReadSchema(BaseModel):
     device_id: int | None = None 
 
 
-class BatteryCreateSchema(BaseModel):
+class BatteryCreateSchema(CustomBaseModel):
     name: str
     firmare_version: str
     is_on: bool
     device_id: int | None = None 
 
 
-class BatteryUpdateSchema(BaseModel):
+class BatteryUpdateSchema(CustomBaseModel):
     name: str
     firmare_version: str
     is_on: bool
@@ -25,22 +29,23 @@ class BatteryUpdateSchema(BaseModel):
 
 
 
-class DeviceCreateSchema(BaseModel):
+class DeviceCreateSchema(CustomBaseModel):
     name: str
     nominal_voltage: float
     lifespan: int
     remaining_capacity: float
 
 
-class DeviceReadSchema(BaseModel):
+class DeviceReadSchema(CustomBaseModel):
     id: int
     name: str
     nominal_voltage: float
     lifespan: int
     remaining_capacity: float
+    batteries: list[BatteryReadSchema]
 
 
-class DeviceUpdateSchema(BaseModel):
+class DeviceUpdateSchema(CustomBaseModel):
     name: str
     nominal_voltage: float
     lifespan: int

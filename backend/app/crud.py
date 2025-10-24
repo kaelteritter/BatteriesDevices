@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.app.models import Battery, Device
 from backend.app.schemas import BatteryCreateSchema, DeviceCreateSchema, DeviceUpdateSchema, BatteryUpdateSchema
@@ -13,7 +14,7 @@ async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
 
 
 async def read_device(session: AsyncSession, device_id: int):
-    stmt = select(Device).where(Device.id == device_id)
+    stmt = select(Device).options(selectinload(Device.batteries)).where(Device.id == device_id)
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -103,3 +104,18 @@ async def delete_battery(session: AsyncSession, battery_id: int):
 
     return True
 
+
+
+async def update_device_batteries_list(
+    session: AsyncSession, device_id: int, battery_id: int
+):
+    device = await read_device(session, device_id)
+    battery = await read_battery(session, battery_id)
+
+    if not device or not battery:
+        return None
+
+    battery.device_id = device_id
+    await session.commit()
+    await session.refresh(device)
+    return device

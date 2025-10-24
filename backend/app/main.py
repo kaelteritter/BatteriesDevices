@@ -68,7 +68,7 @@ async def create_battery(schema: BatteryCreateSchema, session=Depends(get_db)):
             status_code=status.HTTP_409_CONFLICT,
             detail="АКБ с таким именем уже существует",
         )
-    return await crud.read_batteries(session)
+    return await crud.create_battery(session, schema)
 
 
 @app.get("/batteries/{battery_id}/", response_model=BatteryReadSchema)
@@ -82,7 +82,7 @@ async def retrieve_battery(battery_id: int, session=Depends(get_db)):
     return battery
 
 
-@app.put("/batteries/{battery_id}/", response_model=DeviceReadSchema)
+@app.put("/batteries/{battery_id}/", response_model=BatteryReadSchema)
 async def update_battery(schema: BatteryUpdateSchema, battery_id: int, session=Depends(get_db)):
     return await crud.update_battery(session, battery_id, schema)
 
@@ -93,3 +93,6 @@ async def delete_battery(battery_id: int, session=Depends(get_db)):
 
 
 
+@app.put("/devices/{device_id}/batteries/{battery_id}/", response_model=DeviceReadSchema)
+async def connect_battery_to_device(device_id: int, battery_id: int, session=Depends(get_db)):
+    return await crud.update_device_batteries_list(session, device_id, battery_id)
