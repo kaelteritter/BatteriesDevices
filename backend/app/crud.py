@@ -1,5 +1,7 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
 from backend.app.models import Device
 from backend.app.schemas import DeviceCreateSchema, DeviceUpdateSchema
@@ -7,6 +9,12 @@ from backend.app.schemas import DeviceCreateSchema, DeviceUpdateSchema
 
 async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
     device = Device(**schema.model_dump())
+    is_already_existed = await read_device_by_name(session, device.name)
+    if is_already_existed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="АКБ с таким именем уже существует",
+        )
     session.add(device)
     await session.commit()
     return device
@@ -18,12 +26,26 @@ async def read_device(session: AsyncSession, device_id: int):
     return result.scalar_one_or_none()
 
 
-async def update_device(session: AsyncSession, device_id: int, schema: DeviceUpdateSchema):
+async def read_device_by_name(session: AsyncSession, device_name: str):
+    stmt = select(Device).where(Device.name == device_name)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def read_devices(session: AsyncSession):
+    stmt = select(Device)
+    result = await session.execute(stmt)
+    return result.scalars()
+
+
+async def update_device(
+    session: AsyncSession, device_id: int, schema: DeviceUpdateSchema
+):
     device = await read_device(session, device_id)
 
     if not device:
         return None
-    
+
     for key, value in schema.model_dump(exclude_unset=True).items():
         setattr(device, key, value)
     await session.commit()
@@ -35,7 +57,7 @@ async def delete_device(session: AsyncSession, device_id: int):
 
     if not device:
         return False
-    
+
     await session.delete(device)
     await session.commit()
 
