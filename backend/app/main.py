@@ -95,4 +95,38 @@ async def delete_battery(battery_id: int, session=Depends(get_db)):
 
 @app.put("/devices/{device_id}/batteries/{battery_id}/", response_model=DeviceReadSchema)
 async def connect_battery_to_device(device_id: int, battery_id: int, session=Depends(get_db)):
-    return await crud.update_device_batteries_list(session, device_id, battery_id)
+    device = await crud.read_device(session, device_id)
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого устройства не существует",
+        )
+    battery = await crud.read_battery(session, battery_id)
+    if not battery:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого АКБ не существует",
+        )
+    if len(device.batteries) >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="К этому устройство уже подключено 5 устройств",
+        )
+    return await crud.update_device_batteries_list(session, device, battery)
+
+
+@app.delete("/devices/{device_id}/batteries/{battery_id}/", response_model=DeviceReadSchema)
+async def disconnect_battery_to_device(device_id: int, battery_id: int, session=Depends(get_db)):
+    device = await crud.read_device(session, device_id)
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого устройства не существует",
+        )
+    battery = await crud.read_battery(session, battery_id)
+    if not battery:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого АКБ не существует",
+        )
+    return await crud.remove_battery_from_device_batteries_list(session, device, battery)

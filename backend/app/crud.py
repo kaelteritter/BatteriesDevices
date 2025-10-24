@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.app.models import Battery, Device
-from backend.app.schemas import BatteryCreateSchema, DeviceCreateSchema, DeviceUpdateSchema, BatteryUpdateSchema
+from backend.app.schemas import (
+    BatteryCreateSchema,
+    DeviceCreateSchema,
+    DeviceUpdateSchema,
+    BatteryUpdateSchema,
+)
 
 
 async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
@@ -14,7 +19,11 @@ async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
 
 
 async def read_device(session: AsyncSession, device_id: int):
-    stmt = select(Device).options(selectinload(Device.batteries)).where(Device.id == device_id)
+    stmt = (
+        select(Device)
+        .options(selectinload(Device.batteries))
+        .where(Device.id == device_id)
+    )
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -26,9 +35,9 @@ async def read_device_by_name(session: AsyncSession, device_name: str):
 
 
 async def read_devices(session: AsyncSession):
-    stmt = select(Device)
+    stmt = select(Device).options(selectinload(Device.batteries))
     result = await session.execute(stmt)
-    return result.scalars()
+    return result.scalars().all()
 
 
 async def update_device(
@@ -57,7 +66,6 @@ async def delete_device(session: AsyncSession, device_id: int):
     return True
 
 
-
 async def create_battery(session: AsyncSession, schema: BatteryCreateSchema):
     battery = Battery(**schema.model_dump())
     session.add(battery)
@@ -70,10 +78,11 @@ async def read_battery(session: AsyncSession, battery_id: int):
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
+
 async def read_batteries(session: AsyncSession):
     stmt = select(Battery)
     result = await session.execute(stmt)
-    return result.scalars()
+    return result.scalars().all()
 
 
 async def read_battery_by_name(session: AsyncSession, battery_name: str):
@@ -81,13 +90,16 @@ async def read_battery_by_name(session: AsyncSession, battery_name: str):
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
-async def update_battery(session: AsyncSession, battery_id: int, schema: BatteryUpdateSchema):
+
+async def update_battery(
+    session: AsyncSession, battery_id: int, schema: BatteryUpdateSchema
+):
     battery = await read_battery(session, battery_id)
 
     if not battery:
         return None
-    
-    for key, value in schema.model_dump().items():
+
+    for key, value in schema.model_dump(exclude_unset=True).items():
         setattr(battery, key, value)
     await session.commit()
     return battery
@@ -95,27 +107,29 @@ async def update_battery(session: AsyncSession, battery_id: int, schema: Battery
 
 async def delete_battery(session: AsyncSession, battery_id: int):
     battery = await read_battery(session, battery_id)
-    
+
     if not battery:
         return False
-    
+
     await session.delete(battery)
     await session.commit()
 
     return True
 
 
+async def update_device_batteries_list(session: AsyncSession, device, battery):
 
-async def update_device_batteries_list(
-    session: AsyncSession, device_id: int, battery_id: int
+    battery.device_id = device.id
+    await session.commit()
+    await session.refresh(device)
+    return device
+
+
+async def remove_battery_from_device_batteries_list(
+    session: AsyncSession, device, battery
 ):
-    device = await read_device(session, device_id)
-    battery = await read_battery(session, battery_id)
 
-    if not device or not battery:
-        return None
-
-    battery.device_id = device_id
+    battery.device_id = None
     await session.commit()
     await session.refresh(device)
     return device

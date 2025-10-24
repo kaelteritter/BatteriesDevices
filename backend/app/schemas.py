@@ -8,47 +8,46 @@ class CustomBaseModel(BaseModel):
 class BatteryReadSchema(CustomBaseModel):
     id: int
     name: str
-    firmare_version: str
-    is_on: bool
-    device_id: int | None = None 
+    nominal_voltage: float
+    remaining_capacity: float
+    lifespan: int
+    device_id: int | None = None
 
 
 class BatteryCreateSchema(CustomBaseModel):
     name: str
-    firmare_version: str
-    is_on: bool
-    device_id: int | None = None 
+    nominal_voltage: float
+    remaining_capacity: float
+    lifespan: int
+    device_id: int | None = None
 
 
 class BatteryUpdateSchema(CustomBaseModel):
     name: str
-    firmare_version: str
-    is_on: bool
+    nominal_voltage: float
+    remaining_capacity: float
+    lifespan: int
     device_id: int | None
-
 
 
 
 class DeviceCreateSchema(CustomBaseModel):
     name: str
-    nominal_voltage: float
-    lifespan: int
-    remaining_capacity: float
+    firmware_version: str
+    is_on: bool
 
 
 class DeviceReadSchema(CustomBaseModel):
     id: int
     name: str
-    nominal_voltage: float
-    lifespan: int
-    remaining_capacity: float
+    firmware_version: str
+    is_on: bool
     batteries: list[BatteryReadSchema]
 
 
 class DeviceUpdateSchema(CustomBaseModel):
     name: str
-    nominal_voltage: float
-    lifespan: int
-    remaining_capacity: float
+    firmware_version: str
+    is_on: bool
 
 
