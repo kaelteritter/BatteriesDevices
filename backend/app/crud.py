@@ -15,7 +15,7 @@ async def create_device(session: AsyncSession, schema: DeviceCreateSchema):
     device = Device(**schema.model_dump())
     session.add(device)
     await session.commit()
-    return device
+    return await read_device(session, device.id)
 
 
 async def read_device(session: AsyncSession, device_id: int):
@@ -51,7 +51,7 @@ async def update_device(
     for key, value in schema.model_dump(exclude_unset=True).items():
         setattr(device, key, value)
     await session.commit()
-    return device
+    return await read_device(session, device_id)
 
 
 async def delete_device(session: AsyncSession, device_id: int):
