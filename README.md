@@ -14,13 +14,12 @@
    git clone https://github.com/kaelteritter/BatteriesDevices.git
    cd backend
 
-3. Примените миграции:
+3. Запустите контейнер:
 ```bash
-cd backend
-alembic upgrade head
+docker-compose up --build  
 ```
 
-4. Запустите сервер:
+4. Документация к API будет доступна по ссылке:
 ```bash
-fastapi dev app/main.py --reload --port 8000
+http://0.0.0.0:8000/docs
 ```
