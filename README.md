@@ -13,3 +13,14 @@
    ```bash
    git clone https://github.com/kaelteritter/BatteriesDevices.git
    cd backend
+
+3. Примените миграции:
+```bash
+cd backend
+alembic upgrade head
+```
+
+4. Запустите сервер:
+```bash
+fastapi dev app/main.py --reload --port 8000
+```
