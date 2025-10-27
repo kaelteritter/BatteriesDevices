@@ -12,6 +12,7 @@
 2. Склонируйте репозиторий:
    ```bash
    git clone https://github.com/kaelteritter/BatteriesDevices.git
+   cd BatteriesDevices
    cd backend
 
 3. Запустите контейнер:
