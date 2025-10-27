@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models import Battery, Device
-from backend.app.schemas import (
+from app.models import Battery, Device
+from app.schemas import (
     BatteryCreateSchema,
     DeviceCreateSchema,
     DeviceUpdateSchema,

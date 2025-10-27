@@ -1,9 +1,9 @@
 from fastapi import Depends, FastAPI, HTTPException
 from starlette import status
 
-from backend.app import crud
-from backend.app.database import get_db
-from backend.app.schemas import (
+from app import crud
+from app.database import get_db
+from app.schemas import (
     BatteryCreateSchema,
     DeviceReadSchema,
     DeviceCreateSchema,
